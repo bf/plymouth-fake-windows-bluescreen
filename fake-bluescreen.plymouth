@@ -1,0 +1,10 @@
+[Plymouth Theme]
+Name=Fake Bluescreen
+Description=A fake bluescreen so people think your laptop is broken.
+ModuleName=script
+
+[script]
+ImageDir=/usr/share/plymouth/themes/fake-bluescreen
+ScriptFile=/usr/share/plymouth/themes/fake-bluescreen/fake-bluescreen.script
+
+

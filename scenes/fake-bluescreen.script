@@ -1,0 +1,300 @@
+# see https://www.freedesktop.org/wiki/Software/Plymouth/Scripts/
+# see http://www.ubuntugeek.com/quick-tipplymouth-themes-in-ubuntu-10-04-lucid-lynx.html 
+# see https://joekuan.wordpress.com/2010/08/05/plymouth-create-your-own-splash-screen-with-scrolling-boot-messages/
+# see https://gitlab.notset.fr/fepitre-bot/qubes-artwork/-/blob/v4.0.1/plymouth/plymouth-missing-fonts.conf
+# see https://gitlab.com/pwyde/monochrome-plymouth/-/tree/master/hooks
+# see https://github.com/ev3dev/plymouth/blob/e3eac840610ac12724c04a67a376156455a1054a/src/plugins/splash/script/script-lib-plymouth.c#L161
+
+Window.SetBackgroundTopColor(0, 0.46, 0.84);
+Window.SetBackgroundBottomColor(0, 0.46, 0.84);
+
+screen_width = Window.GetWidth();
+screen_height = Window.GetHeight();
+
+FONT = "Sans";
+
+current_state = "normal";
+
+
+# global: bsod progress indicator
+sprite_txt_frowny_smile = Sprite();
+sprite_txt_pc_problem = Sprite();
+sprite_txt_progress = Sprite();
+sprite_qr_code = Sprite();
+sprite_txt_explanation = Sprite();
+sprite_txt_call_support = Sprite();
+sprite_txt_error_code = Sprite();
+
+fun scene_bsod_set_opacity (opacity) {
+	sprite_txt_frowny_smile.SetOpacity(opacity);
+	sprite_txt_pc_problem.SetOpacity(opacity);
+	sprite_txt_progress.SetOpacity(opacity);
+	sprite_qr_code.SetOpacity(opacity);
+	sprite_txt_explanation.SetOpacity(opacity);
+	sprite_txt_call_support.SetOpacity(opacity);
+	sprite_txt_error_code.SetOpacity(opacity);
+}
+
+fun scene_bsod_show () {
+	Window.SetBackgroundTopColor(0, 0.46, 0.84);
+	Window.SetBackgroundBottomColor(0, 0.46, 0.84);
+	
+	scene_bsod_set_progress(0);
+	scene_bsod_set_opacity(1);
+}
+
+fun scene_bsod_hide () {
+	scene_bsod_set_opacity(0);
+}
+
+# global bsod progress
+scene_bsod_current_progress = 0;
+
+fun scene_bsod_set_progress (progress) {
+	if (progress == scene_bsod_current_progress) {
+		return;
+	}
+
+	if (progress > 100) {
+		progress = 100;
+	}
+
+	if (progress < 0) {
+		progress = 0;
+	}
+
+	if (scene_bsod_current_progress < progress) {
+		scene_bsod_current_progress = progress;	
+	}
+
+	FONT_SIZE_TXT_PROGRESS = 30;
+	txt_progress_status = scene_bsod_current_progress + "% complete";
+	sprite_txt_progress.SetImage(Image.Text(txt_progress_status, 1, 1, 1, 1, 
+		FONT + " " + FONT_SIZE_TXT_PROGRESS));
+}
+
+fun scene_bsod_prepare () {
+	PADDING_TOP = 180;
+	PADDING_LEFT = 200;
+
+	# frowny smile
+	sprite_txt_frowny_smile.SetImage(Image("scenes/bsod/frown.png"));
+	sprite_txt_frowny_smile.SetPosition(PADDING_LEFT, PADDING_TOP);
+
+	# text about pc problem
+	TXT_PC_PROBLEM = "Your PC ran into a problem and needs to restart. We're\n"
+		+ "just collecting some error info, and then we'll restart for\n"
+	 	+ "you.";
+	FONT_SIZE_TXT_PC_PROBLEM = 30;
+
+	image_txt_pc_problem = Image.Text(TXT_PC_PROBLEM, 1, 1, 1, 1, FONT + " " + FONT_SIZE_TXT_PC_PROBLEM);
+	sprite_txt_pc_problem.SetImage(image_txt_pc_problem);
+	sprite_txt_pc_problem.SetPosition(PADDING_LEFT, 
+		PADDING_TOP + sprite_txt_frowny_smile.GetImage().GetHeight() + 60);
+
+	# progress bar
+	sprite_txt_progress = Sprite();
+	sprite_txt_progress.SetPosition(PADDING_LEFT,
+		sprite_txt_pc_problem.GetY() + image_txt_pc_problem.GetHeight() + 60);
+	
+	# initialize bsod progress at 10%
+	scene_bsod_set_progress(10);
+
+	# calculate width of qr code explanation text
+	TXT_EXPLANATION = "For more information about this issue and possible fixes, visit https://www.windows.com/stopcode";
+	FONT_SIZE_TXT_EXPLANATION = 14;
+	image_txt_explanation = Image.Text(TXT_EXPLANATION, 1, 1, 1, 1, FONT + " " + FONT_SIZE_TXT_EXPLANATION);
+
+	# calculate space budget for qr code
+	PADDING_QR_CODE = 25;
+	size_qr_code = image_txt_pc_problem.GetWidth() - image_txt_explanation.GetWidth() - PADDING_QR_CODE;
+	PADDING_LEFT_AFTER_QR_CODE = PADDING_LEFT + size_qr_code + PADDING_QR_CODE;
+
+	# qr code
+	image_qr_code = Image("scenes/bsod/qr.png");
+	image_qr_code = image_qr_code.Scale(size_qr_code, size_qr_code);
+	sprite_qr_code.SetImage(image_qr_code);
+	sprite_qr_code.SetPosition(PADDING_LEFT,
+		sprite_txt_progress.GetY() + sprite_txt_progress.GetImage().GetHeight() + 60);
+
+	# qr code explanation text
+	sprite_txt_explanation.SetImage(image_txt_explanation);
+	sprite_txt_explanation.SetPosition(PADDING_LEFT_AFTER_QR_CODE, sprite_qr_code.GetY());
+	
+
+	# qr code call support text
+	TXT_CALL_SUPPORT = "If you call a support person, give them this info:";
+	FONT_SIZE_TEXT_CALL_SUPPORT = 12;
+
+	image_txt_call_support = Image.Text(TXT_CALL_SUPPORT, 1, 1, 1, 1, FONT + " " + FONT_SIZE_TEXT_CALL_SUPPORT);
+	sprite_txt_call_support.SetImage(image_txt_call_support);
+	sprite_txt_call_support.SetPosition(PADDING_LEFT_AFTER_QR_CODE, 
+		sprite_qr_code.GetY() + size_qr_code - image_txt_call_support.GetHeight() * 3);
+
+	# choose random error code
+	ERROR_CODES = [
+		"DPC_WATCHDOG_VIOLATION", 
+		"SYSTEM SERVICE EXCEPTION", 
+		"CRITICAL PROCESS DIED", 
+		"DRIVER POWER STATE FAILURE", 
+		"IRQL_NOT_LESS_OR_EQUAL"
+	];
+	random_error_code_index = Math.Int((Math.Random() * 10) % 5);
+
+	# qr code error code
+	TXT_ERROR_CODE = "Stop code: " + ERROR_CODES[random_error_code_index];
+	image_txt_error_code = Image.Text(TXT_ERROR_CODE, 1, 1, 1, 1, FONT + " " + FONT_SIZE_TEXT_CALL_SUPPORT);
+	sprite_txt_error_code.SetImage(image_txt_error_code);
+	sprite_txt_error_code.SetPosition(PADDING_LEFT_AFTER_QR_CODE,
+		sprite_qr_code.GetY() + size_qr_code - image_txt_error_code.GetHeight());
+
+	# hide scene
+	scene_bsod_hide();
+}
+
+
+# prepare bsod scene
+scene_bsod_prepare();
+
+
+# globals for scene normal
+sprite_normal_logo = Sprite();
+sprite_normal_animation = Sprite();
+sprite_normal_txt = Sprite();
+
+# scene normal
+fun scene_normal_opacity(opacity) {
+	sprite_normal_animation.SetOpacity(opacity);
+	sprite_normal_txt.SetOpacity(opacity);
+	sprite_normal_logo.SetOpacity(opacity);
+}
+
+fun scene_normal_show() {
+	Window.SetBackgroundTopColor(0, 0, 0);
+	Window.SetBackgroundBottomColor(0, 0, 0);
+
+	scene_normal_opacity(1);
+}
+
+fun scene_normal_hide () {
+	scene_normal_opacity(0);
+}
+
+fun scene_normal_prepare() {
+  divide_by=3/4;
+	description_text="";
+
+  # during boot, show both windows logo and progress
+	if (Plymouth.GetMode () == "boot") {
+		description_text="Diagnosing your PC";
+
+		# logo 
+		SIZE_LOGO = 200;
+		image_logo = Image("scenes/normal/logo.png");
+		image_logo = image_logo.Scale(SIZE_LOGO, SIZE_LOGO);
+		sprite_normal_logo.SetImage(image_logo);
+		sprite_normal_logo.SetPosition(
+			screen_width/2 - image_logo.GetWidth()/2, 
+			Math.Int(screen_height * 1/4)
+		);		
+	} else {
+	  # during everything else just show progress
+	  # adapt the factor
+	  divide_by=1/2;
+	}
+
+	# set scene progress to 0
+	scene_normal_set_progress(1);
+
+	# animation
+	sprite_normal_animation.SetPosition(
+		screen_width/2 - sprite_normal_animation.GetImage().GetWidth()/2, 
+		Math.Int(screen_height * divide_by) - sprite_normal_animation.GetImage().GetHeight()/2
+	);
+
+	# text at bottom
+	FONT_SIZE_BOTTOM_TEXT = 32;
+	image_normal_txt = Image.Text(description_text, 1, 1, 1, 1, FONT + " " + FONT_SIZE_BOTTOM_TEXT);
+	sprite_normal_txt.SetImage(image_normal_txt);
+	sprite_normal_txt.SetPosition(
+		screen_width/2 - image_normal_txt.GetWidth()/2,
+		sprite_normal_animation.GetY() + sprite_normal_animation.GetImage().GetHeight() + 60
+	);
+
+	# hide scene
+	scene_normal_hide();
+}
+
+# global variable for progress in normal scene
+scene_normal_current_animation_id = 1;
+
+fun scene_normal_set_progress (progress) {
+	animation_id = progress % 42 + 1;
+
+	if (animation_id == scene_normal_current_animation_id) {
+		return;
+	}
+
+	scene_normal_current_animation_id = animation_id;
+
+	sprite_normal_animation.SetImage(Image("scenes/normal/loading-animation/" + animation_id + ".png"));
+}
+
+scene_normal_prepare();
+
+scene_normal_show();
+
+
+fun password_callback (txt_prompt, num_bullets) {
+	current_state = "password";
+
+	scene_normal_hide();
+	scene_bsod_show();
+}
+
+Plymouth.SetDisplayPasswordFunction(password_callback);
+
+fun normal_callback () {
+	current_state = "normal";
+
+	scene_bsod_hide();
+	scene_normal_show();
+}
+
+Plymouth.SetDisplayNormalFunction(normal_callback);
+
+
+
+# progress update
+sprite_progress = Sprite();
+sprite_progress.SetPosition(500, 0);
+fun progress_callback (time, progress) {
+	#img = Image.Text("time: " + time + " progress: " + progress, 1, 0, 0, 1);
+	#sprite_progress.SetImage(img);	
+}
+
+Plymouth.SetBootProgressFunction (progress_callback);
+
+
+# stats in top right corner
+time = 0;
+sprite_time = Sprite(Image.Text(time));
+sprite_time.SetPosition(0,0,101);
+
+fun refresh_callback () {
+	time++;
+	
+	# debug_text = "state: " + current_state + " mode: " + Plymouth.GetMode() + " frame: #" + time;
+	# sprite_time.SetImage(Image.Text(debug_text, 1, 0 , 0));
+
+	if (current_state == "normal") {
+		animation_id = (time / 5);
+		scene_normal_set_progress(animation_id);
+	} else if (current_state == "password") {
+		progress = Math.Int((time % 1000) / 100) * 10;
+		scene_bsod_set_progress(progress);
+	}
+}
+
+Plymouth.SetRefreshFunction (refresh_callback);
+
