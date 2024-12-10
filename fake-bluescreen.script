@@ -265,21 +265,20 @@ Plymouth.SetDisplayNormalFunction(normal_callback);
 
 
 
-# progress update
-sprite_progress = Sprite();
-sprite_progress.SetPosition(500, 0);
-fun progress_callback (time, progress) {
-	#img = Image.Text("time: " + time + " progress: " + progress, 1, 0, 0, 1);
-	#sprite_progress.SetImage(img);	
-}
+# progress update (debug)
+#sprite_progress = Sprite();
+#sprite_progress.SetPosition(500, 0);
+#fun progress_callback (time, progress) {
+#	img = Image.Text("time: " + time + " progress: " + progress, 1, 0, 0, 1);
+#	sprite_progress.SetImage(img);	
+#}
+#Plymouth.SetBootProgressFunction (progress_callback);
 
-Plymouth.SetBootProgressFunction (progress_callback);
 
-
-# stats in top right corner
+# stats in top right corner (debug)
 time = 0;
-sprite_time = Sprite(Image.Text(time));
-sprite_time.SetPosition(0,0,101);
+#sprite_time = Sprite(Image.Text(time));
+#sprite_time.SetPosition(0,0,101);
 
 fun refresh_callback () {
 	time++;
