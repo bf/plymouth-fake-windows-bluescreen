@@ -1,6 +1,6 @@
 # Plymouth theme: Fake Windows Bluescreen
 
-This package shows fake windows bluescreen during linux boot and hides password input for disk decryption. It looks similar to Windows 7 or Windows 11 bluescreen and tries to fool people into thinking you have a faulty windows laptop. For novices it will look like you have windows installed and your laptop is experiencing a blue screen error. It is not apparent that it's a linux laptop waiting for the hard disk password.
+This package shows fake windows bluescreen during linux boot and hides password input for disk decryption. It looks similar to Windows 7 or Windows 11 bluescreen and tries to fool people into thinking you have a faulty windows laptop. For novices it will look like you have windows installed and your laptop is experiencing a blue screen error. Nobody will know it is a linux laptop waiting for the hard disk password.
 
 **NOTE: At boot, this theme will just show the bluescreen. It will not show any boot messages. The password prompt for hard disk decryption is hidden.** The bluescreen will go away once you have typed in your password and pressed the enter key. Only after the disk is successfully decrypted the bluescreen will be hidden.
 
